@@ -2,3 +2,5 @@ name: sketch
 version: 0.0.1
 author: Marcos Cooper <marcos@releasepad.com>
 description: Sketch is a utility library for developing web applications
+dependencies:
+  unittest: '>=0.11.0+5 <0.12.0'
