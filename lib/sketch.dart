@@ -15,5 +15,6 @@
 library sketch;
 
 import 'dart:html';
+import 'dart:convert';
 
 part 'src/template.dart';

@@ -17,11 +17,14 @@ part of sketch;
 class Template {
     Template.bind(selector, parameters) {
         var validator = new NodeValidatorBuilder.common()
-            ..allowElement('a', attributes: ['href']);        
-        querySelectorAll('[data-bind-text]').forEach((Element element) {
+            ..allowElement('a', attributes: ['href']);
+        
+        var root = querySelector(selector);
+        
+        root.querySelectorAll('[data-bind-text]').forEach((Element element) {
             element.text = parameters[element.dataset['bind-text']];
         });
-        querySelectorAll('[data-bind-foreach]').forEach((Element element) {
+        root.querySelectorAll('[data-bind-foreach]').forEach((Element element) {
             var innerHtml = element.innerHtml;
             element.children.clear();
             List list = parameters[element.dataset['bind-foreach']];
@@ -34,6 +37,40 @@ class Template {
                 element.children.add(new Element.html(html, validator: validator));
             });
         });
-        querySelector(selector).style.display = 'block';
+        root.querySelectorAll('[data-bind-html]').forEach((Element element) {
+            // TODO implementation
+        });
+        root.querySelectorAll('[data-bind-style]').forEach((Element element) {
+            var pattern = new RegExp(r"(([\w-]*)\s*:\s*([\w-]*)),?\s*");
+            var matches = pattern.allMatches(element.dataset['bind-style']);
+            var style = new List(); 
+            matches.forEach((match) {
+                var key = match[2];
+                var value = match[3];
+                if (parameters[match[3]] is Function) {
+                    element.style.setProperty(match[2], parameters[match[3]]());
+                } else {
+                    element.style.setProperty(match[2], parameters[match[3]]);
+                }
+            });
+            element.dataset.remove('bind-style');
+            /* element.setAttribute('style', style.join(", ")); */
+        });
+        root.querySelectorAll('[data-bind-attr]').forEach((Element element) {
+            // TODO implementation
+        });
+        root.querySelectorAll('data-bind-prop').forEach((Element element) {
+            // TODO implementation
+        });
+        root.querySelectorAll('data-bind-class').forEach((Element element) {
+            // TODO implementation
+        });
+        root.querySelectorAll('data-bind-visible').forEach((Element element) {
+            // TODO implementation
+        });
+        root.querySelectorAll('data-bind-event').forEach((Element element) {
+            // TODO implementation
+        });
+        root.style.display = 'block';
     }
 }
