@@ -10,12 +10,21 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License
+// limitations under the License.
 
-library sketch;
+part of sketch;
 
-import 'dart:html';
-import 'dart:async';
-
-part 'src/template.dart';
-part 'src/view_router.dart';
+abstract class ViewRouter {
+    String path;
+    
+    Map<String, String> _rules;
+    
+    void addRule(String path, String view) {
+        if (_rules == null) {
+            _rules = new Map();
+        }
+        _rules[path] = view;
+    }
+    
+    String get view => _rules[path]; 
+}
