@@ -17,7 +17,24 @@ part of sketch;
 class Template {
     Future future;
     
-    Template.bind(selector, parameters) {
+    _parseParameters(String input, Map parameters, Function callback) {
+        var pattern = new RegExp(r"^{");
+        if (!pattern.hasMatch(input)) { // String
+            callback(null, parameters[input]);
+        } else { // Map
+            pattern = new RegExp(r"(([\w-]*)\s*:\s*([\w-]*)),?\s*");
+            var matches = pattern.allMatches(input); 
+            matches.forEach((match) {
+                if (parameters[match[3]] is Function) {
+                    callback(match[2], parameters[match[3]]());                    
+                } else {
+                    callback(match[2], parameters[match[3]]);
+                }
+            });
+        }
+    }
+    
+    Template.bind(String selector, Map parameters) {
         var validator = new NodeValidatorBuilder.common()
             ..allowElement('a', attributes: ['href']);
         var root = querySelector(selector);
@@ -28,54 +45,29 @@ class Template {
             element.setInnerHtml(parameters[element.dataset['bind-text']]);
         });
         root.querySelectorAll('[data-bind-style]').forEach((Element element) {
-            var pattern = new RegExp(r"^{");
-            if (!pattern.hasMatch(element.dataset['bind-style'])) {
-                element.setAttribute('style', parameters[element.dataset['bind-style']]);
-            } else {
-                pattern = new RegExp(r"(([\w-]*)\s*:\s*([\w-]*)),?\s*");
-                var matches = pattern.allMatches(element.dataset['bind-style']); 
-                matches.forEach((match) {
-                    if (parameters[match[3]] is Function) {
-                        element.style.setProperty(match[2], parameters[match[3]]());
-                    } else {
-                        element.style.setProperty(match[2], parameters[match[3]]);
-                    }
-                });
-            }
+            _parseParameters(element.dataset['bind-style'], parameters, (key, value) {
+                if (key == null) {
+                    element.setAttribute('style', value);
+                } else {
+                    element.style.setProperty(key, value);
+                }
+            });
             element.dataset.remove('bind-style');
         });
         root.querySelectorAll('[data-bind-attr]').forEach((Element element) {
-            var pattern = new RegExp(r"^{");
-            if (pattern.hasMatch(element.dataset['bind-attr'])) {
-                pattern = new RegExp(r"(([\w-]*)\s*:\s*([\w-]*)),?\s*");
-                var matches = pattern.allMatches(element.dataset['bind-attr']); 
-                matches.forEach((match) {
-                    if (parameters[match[3]] is Function) {
-                        element.attributes[match[2]] = parameters[match[3]]();
-                    } else {
-                        element.attributes[match[2]] = parameters[match[3]];
-                    }
-                });
-            }
+            _parseParameters(element.dataset['bind-attr'], parameters, (key, value) {
+                if (key != null) {
+                    element.attributes[key] = value;
+                }
+            });
             element.dataset.remove('bind-attr');
         });
         root.querySelectorAll('[data-bind-class]').forEach((Element element) {
-            var pattern = new RegExp(r"^{");
-            if (pattern.hasMatch(element.dataset['bind-class'])) {
-                pattern = new RegExp(r"(([\w-]*)\s*:\s*([\w-]*)),?\s*");
-                var matches = pattern.allMatches(element.dataset['bind-class']); 
-                matches.forEach((match) {
-                    if (parameters[match[3]] is Function) {
-                        if (parameters[match[3]]()) {
-                            element.classes.add(match[2]);
-                        }
-                    } else {
-                        if (parameters[match[3]]) {
-                            element.classes.add(match[2]);                            
-                        }
-                    }
-                });
-            }
+            _parseParameters(element.dataset['bind-class'], parameters, (key, value) {
+                if (key != null && value) {
+                    element.classes.add(key);                        
+                }
+            });
             element.dataset.remove('bind-class');
         });
         root.querySelectorAll('[data-bind-visible]').forEach((Element element) {
