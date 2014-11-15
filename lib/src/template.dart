@@ -17,7 +17,7 @@ part of sketch;
 class Template {
     Future future;
     
-    _parseParameters(String input, Map parameters, Function callback) {
+    _parseParameters(String input, Map parameters, Function callback, { expectFunction: false }) {
         var pattern = new RegExp(r"^{");
         if (!pattern.hasMatch(input)) { // String
             callback(null, parameters[input]);
@@ -25,10 +25,18 @@ class Template {
             pattern = new RegExp(r"(([\w-]*)\s*:\s*([\w-]*)),?\s*");
             var matches = pattern.allMatches(input); 
             matches.forEach((match) {
-                if (parameters[match[3]] is Function) {
-                    callback(match[2], parameters[match[3]]());                    
+                if (expectFunction) {
+                    if (parameters[match[3]] is Function) {
+                        callback(match[2], parameters[match[3]]);
+                    } else {
+                        callback(match[2], () => parameters[match[3]]);
+                    }                    
                 } else {
-                    callback(match[2], parameters[match[3]]);
+                    if (parameters[match[3]] is Function) {
+                        callback(match[2], parameters[match[3]]());
+                    } else {
+                        callback(match[2], parameters[match[3]]);
+                    }                    
                 }
             });
         }
@@ -75,7 +83,11 @@ class Template {
             element.dataset.remove('bind-visible');
         });
         root.querySelectorAll('[data-bind-event]').forEach((Element element) {
-            // TODO implementation
+            _parseParameters(element.dataset['bind-event'], parameters, (key, value) {
+                if (key != null) {
+                    element.on[key].listen(value);
+                }
+            }, expectFunction: true);
         });
         root.querySelectorAll('[data-bind-foreach]').forEach((Element element) {
             var innerHtml = element.innerHtml;

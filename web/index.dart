@@ -51,9 +51,19 @@ void main() {
         new Template.bind('#test6', data);
         expect(querySelector('#test6 > p > span').hidden, false);
     });
+    test('data-bind-event', () {
+        var data = {
+            'click': (event) {
+                querySelector('#test7 a').setInnerHtml('Clicked');
+            }
+        };
+        new Template.bind('#test7', data);
+        querySelector('#test7 a').click();
+        expect(querySelector('#test7 a').innerHtml, equals('Clicked'));
+    });
     test('data-bind-view', () {
         var data = { 'router': new TestRouter() };
-        var bind = new Template.bind('#test7', data);
+        var bind = new Template.bind('#test8', data);
         expect(bind.future, completion(equals('<p>Test</p>')));
     });
 }
