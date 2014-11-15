@@ -21,22 +21,39 @@ class Template {
         var pattern = new RegExp(r"^{");
         if (!pattern.hasMatch(input)) { // String
             callback(null, parameters[input]);
+            if (parameters is ObservableMap) {
+                parameters.changes.listen((record) {
+                    if (record.first.key == input) {
+                        callback(null, parameters[input]);
+                    }
+                });
+            }
         } else { // Map
+            var key, value;
             pattern = new RegExp(r"(([\w-]*)\s*:\s*([\w-]*)),?\s*");
             var matches = pattern.allMatches(input); 
             matches.forEach((match) {
+                key = match[2];
                 if (expectFunction) {
                     if (parameters[match[3]] is Function) {
-                        callback(match[2], parameters[match[3]]);
+                        value = parameters[match[3]];
                     } else {
-                        callback(match[2], () => parameters[match[3]]);
+                        throw new Exception('A function was expected');
                     }                    
                 } else {
                     if (parameters[match[3]] is Function) {
-                        callback(match[2], parameters[match[3]]());
+                        value = parameters[match[3]]();
                     } else {
-                        callback(match[2], parameters[match[3]]);
-                    }                    
+                        value = parameters[match[3]];
+                    }
+                }
+                callback(key, value);
+                if (parameters is ObservableMap) {
+                    parameters.changes.listen((record) {
+                        if (record.first.key == key) {
+                            callback(key, value);
+                        }
+                    });
                 }
             });
         }
@@ -47,17 +64,16 @@ class Template {
             ..allowElement('a', attributes: ['href']);
         var root = querySelector(selector);
         root.querySelectorAll('[data-bind-text]').forEach((Element element) {
-            element.text = parameters[element.dataset['bind-text']];
-            if (parameters is ObservableMap) {
-                parameters.changes.listen((record) {
-                    if (record.first.key == element.dataset['bind-text']) {
-                        element.text = record.first.newValue;
-                    }
-                });
-            }
+            _parseParameters(element.dataset['bind-text'], parameters, (key, value) {
+                element.text = value;
+            });
+            element.dataset.remove('bind-text');
         });
         root.querySelectorAll('[data-bind-html]').forEach((Element element) {
-            element.setInnerHtml(parameters[element.dataset['bind-text']]);
+            _parseParameters(element.dataset['bind-html'], parameters, (key, value) {
+                element.setInnerHtml(value);
+            });
+            element.dataset.remove('bind-html');
         });
         root.querySelectorAll('[data-bind-style]').forEach((Element element) {
             _parseParameters(element.dataset['bind-style'], parameters, (key, value) {
@@ -86,7 +102,11 @@ class Template {
             element.dataset.remove('bind-class');
         });
         root.querySelectorAll('[data-bind-visible]').forEach((Element element) {
-            element.hidden = !parameters[element.dataset['bind-visible']];
+            _parseParameters(element.dataset['bind-visible'], parameters, (key, value) {
+                if (key == null) {
+                    element.hidden = !value;
+                }
+            });
             element.dataset.remove('bind-visible');
         });
         root.querySelectorAll('[data-bind-event]').forEach((Element element) {

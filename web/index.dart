@@ -17,10 +17,10 @@ void main() {
     test('data-bind-text', () {
         var data = new ObservableMap.from({ 'text': 'Text' });
         var bind = new Template.bind('#test1', data);
-        expect(querySelector('#test1 > p').innerHtml, equals('<span data-bind-text="text">Text</span>'));
-        data['text'] = 'Text3';
+        expect(querySelector('#test1 > p').innerHtml, equals('<span>Text</span>'));
+        data['text'] = 'Text2';
         data.changes.listen((record) {
-            expect(querySelector('#test1 > p').innerHtml, equals('<span data-bind-text="text">Text2</span>'));
+            expect(querySelector('#test1 > p').innerHtml, equals('<span>Text2</span>'));
         });
     });
     test('data-bind-style', () {
