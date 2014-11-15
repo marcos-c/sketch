@@ -17,5 +17,7 @@ library sketch;
 import 'dart:html';
 import 'dart:async';
 
+import 'package:observe/observe.dart';
+
 part 'src/template.dart';
 part 'src/view_router.dart';

@@ -48,6 +48,13 @@ class Template {
         var root = querySelector(selector);
         root.querySelectorAll('[data-bind-text]').forEach((Element element) {
             element.text = parameters[element.dataset['bind-text']];
+            if (parameters is ObservableMap) {
+                parameters.changes.listen((record) {
+                    if (record.first.key == element.dataset['bind-text']) {
+                        element.text = record.first.newValue;
+                    }
+                });
+            }
         });
         root.querySelectorAll('[data-bind-html]').forEach((Element element) {
             element.setInnerHtml(parameters[element.dataset['bind-text']]);

@@ -1,8 +1,9 @@
+import 'dart:html';
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'package:sketch/sketch.dart';
-
-import 'dart:html';
+import 'package:observe/observe.dart';
 
 class TestRouter extends Object with ViewRouter {
     TestRouter() {
@@ -14,10 +15,13 @@ class TestRouter extends Object with ViewRouter {
 void main() {
     useHtmlConfiguration();
     test('data-bind-text', () {
-        new Template.bind('#test1', {
-            'text': 'Text'
-        });
+        var data = new ObservableMap.from({ 'text': 'Text' });
+        var bind = new Template.bind('#test1', data);
         expect(querySelector('#test1 > p').innerHtml, equals('<span data-bind-text="text">Text</span>'));
+        data['text'] = 'Text3';
+        data.changes.listen((record) {
+            expect(querySelector('#test1 > p').innerHtml, equals('<span data-bind-text="text">Text2</span>'));
+        });
     });
     test('data-bind-style', () {
         new Template.bind('#test2', {
