@@ -10,15 +10,17 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License
+// limitations under the License.
 
-library sketch;
+part of sketch;
 
-import 'dart:html';
-import 'dart:async';
-
-import 'package:observe/observe.dart';
-
-part 'src/template.dart';
-part 'src/view_router.dart';
-part 'src/simple_router.dart';
+class SimpleRouter extends Object with ViewRouter {
+    SimpleRouter(Map rules) {
+        rules.forEach((path, view) {
+            if (this.path == null) {
+                this.path = path;
+            }
+            addRule(path, view);
+        });
+    }
+}

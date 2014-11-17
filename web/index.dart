@@ -5,13 +5,6 @@ import 'package:unittest/html_config.dart';
 import 'package:sketch/sketch.dart';
 import 'package:observe/observe.dart';
 
-class TestRouter extends Object with ViewRouter {
-    TestRouter() {
-        this.addRule('/index', 'view/test.html');
-        this.path = '/index';
-    }
-}
-
 void main() {
     useHtmlConfiguration();
     test('data-bind-text', () {
@@ -23,13 +16,13 @@ void main() {
             expect(querySelector('#test1 > p').innerHtml, equals('<span>Text2</span>'));
         });
     });
-    test('data-bind-style', () {
+    test('data-bind-style (String)', () {
         new Template.bind('#test2', {
             'style': 'color: red; background-color: black;'
         });
         expect(querySelector('#test2 > p').innerHtml, equals('<span style="color: red; background-color: black;"></span>'));
     });
-    test('data-bind-style', () {
+    test('data-bind-style (Map)', () {
         new Template.bind('#test3', {
             'textColor': 'red',
             'backgroundColor': () => 'black'
@@ -66,7 +59,7 @@ void main() {
         expect(querySelector('#test7 a').innerHtml, equals('Clicked'));
     });
     test('data-bind-view', () {
-        var data = { 'router': new TestRouter() };
+        var data = { 'router': new SimpleRouter({ '/index': 'view/test.html' }) };
         var bind = new Template.bind('#test8', data);
         expect(bind.future, completion(equals('<p>Test</p>')));
     });
