@@ -14,45 +14,75 @@
 
 part of sketch;
 
-typedef TemplateCallback(String left_key, String right_key, String value);
+/// Binding callback definition
+/// 
+/// left_key refers to the parameter key
+/// right_key refers to the key inside the data source
+/// value refers to the value inside the data source for right_key
+typedef BindingCallback(String left_key, String right_key, String value);
 
+/// Template utility class
+/// 
+/// Supports the following bindings:
+/// 
+///     data-bind-text
+///     data-bind-html
+///     data-bind-style
+///     data-bind-attr
+///     data-bind-class
+///     data-bind-visible
+///     data-bind-event     
+///     data-bind-foreach
+///     data-bind-view
 class Template {
     Future future;
     
-    _parseParameters(String input, Map parameters, TemplateCallback callback, { expectFunction: false }) {
+    /// Bind each parameter to it's data source
+    /// 
+    /// Valid patterns are:
+    /// 
+    ///     data-bind-text="text"
+    ///     data-bind-style="style"
+    ///     data-bind-style="{color: textColor, background-color: backgroundColor}"
+    ///     data-bind-attr="{href: action}"
+    ///     data-bind-class="{box: isBox, house: isHouse, tree: isTree}"
+    ///     data-bind-visible="isMale"
+    ///     data-bind-event="{click: click}"
+    ///     data-bind-view="router"
+    void _bindParameters(String parameters, Map dataSource, BindingCallback callback, { expectFunction: false }) {
         var pattern = new RegExp(r"^{");
-        if (!pattern.hasMatch(input)) { // String
-            callback(null, input, parameters[input]);
-            if (parameters is ObservableMap) {
-                parameters.changes.listen((record) {
-                    if (record.first.key == input) {
-                        callback(null, input, parameters[input]);
+        if (!pattern.hasMatch(parameters)) {
+            callback(null, parameters, dataSource[parameters]);
+            if (dataSource is ObservableMap) {
+                dataSource.changes.listen((record) {
+                    if (record.first.key == parameters) {
+                        callback(null, parameters, dataSource[parameters]);
                     }
                 });
             }
-        } else { // Map
+        } else { // key is a map of keys to keys inside the dataSource
             var left_key, right_key, value;
             pattern = new RegExp(r"(([\w-]*)\s*:\s*([\w-]*)),?\s*");
-            var matches = pattern.allMatches(input); 
+            var matches = pattern.allMatches(parameters); 
             matches.forEach((match) {
                 left_key = match[2];
                 right_key = match[3];
                 if (expectFunction) {
-                    if (parameters[match[3]] is Function) {
-                        value = parameters[match[3]];
+                    if (dataSource[match[3]] is Function) {
+                        value = dataSource[match[3]];
                     } else {
                         throw new Exception('A function was expected');
                     }                    
                 } else {
-                    if (parameters[match[3]] is Function) {
-                        value = parameters[match[3]]();
+                    if (dataSource[match[3]] is Function) {
+                        value = dataSource[match[3]]();
                     } else {
-                        value = parameters[match[3]];
+                        value = dataSource[match[3]];
                     }
                 }
                 callback(left_key, right_key, value);
-                if (parameters is ObservableMap) {
-                    parameters.changes.listen((record) {
+                if (dataSource is ObservableMap) {
+                    dataSource.changes.listen((record) {
                         if (record.first.key == right_key) {
                             callback(left_key, right_key, record.first.newValue);
                         }
@@ -62,18 +92,35 @@ class Template {
         }
     }
     
-    Template.bind(String selector, Map parameters) {
+    /// Request an set the view router path
+    ///  
+    /// TODO Add a controller instance to each view
+    /// TODO Add a view cache
+    void _requestView(Element element, ViewRouter viewRouter, NodeValidatorBuilder validator) {
+        future = HttpRequest.getString(viewRouter.view)
+            ..then((String fileContents) {
+                element.children.clear();
+                element.children.add(new Element.html(fileContents, validator: validator));
+            })
+            ..catchError((error) {
+                print(error.toString());
+            });
+    }
+    
+    Template.bind(String selector, Map dataSource) {
+        // Allow anchor elements when adding new elements
         var validator = new NodeValidatorBuilder.common()
             ..allowElement('a', attributes: ['href']);
-        var root = querySelector(selector);
-        root.querySelectorAll('[data-bind-text]').forEach((Element element) {
-            _parseParameters(element.dataset['bind-text'], parameters, (left_key, right_key, value) {
+        // Bind only the elements inside the container element
+        var container = querySelector(selector);
+        container.querySelectorAll('[data-bind-text]').forEach((Element element) {
+            _bindParameters(element.dataset['bind-text'], dataSource, (left_key, right_key, value) {
                 if (left_key == null) {
                     // Textarea binding to parameters
                     if (element is TextAreaElement) {
                         element.value = value;
                         element.onInput.listen((event) {
-                            parameters[right_key] = element.value;
+                            dataSource[right_key] = element.value;
                         });
                     } else {
                         element.text = value;
@@ -82,16 +129,16 @@ class Template {
             });
             element.dataset.remove('bind-text');
         });
-        root.querySelectorAll('[data-bind-html]').forEach((Element element) {
-            _parseParameters(element.dataset['bind-html'], parameters, (left_key, right_key, value) {
+        container.querySelectorAll('[data-bind-html]').forEach((Element element) {
+            _bindParameters(element.dataset['bind-html'], dataSource, (left_key, right_key, value) {
                 if (left_key == null) {
                     element.setInnerHtml(value);                    
                 }
             });
             element.dataset.remove('bind-html');
         });
-        root.querySelectorAll('[data-bind-style]').forEach((Element element) {
-            _parseParameters(element.dataset['bind-style'], parameters, (left_key, rigth_key, value) {
+        container.querySelectorAll('[data-bind-style]').forEach((Element element) {
+            _bindParameters(element.dataset['bind-style'], dataSource, (left_key, rigth_key, value) {
                 if (left_key == null) {
                     element.setAttribute('style', value);
                 } else {
@@ -100,14 +147,14 @@ class Template {
             });
             element.dataset.remove('bind-style');
         });
-        root.querySelectorAll('[data-bind-attr]').forEach((Element element) {
-            _parseParameters(element.dataset['bind-attr'], parameters, (left_key, right_key, value) {
+        container.querySelectorAll('[data-bind-attr]').forEach((Element element) {
+            _bindParameters(element.dataset['bind-attr'], dataSource, (left_key, right_key, value) {
                 if (left_key != null) {
                     // InputElement with binding to parameters
                     if (left_key == 'value' && element is InputElement) {
                         element.value = value;
                         element.onInput.listen((event) {
-                            parameters[right_key] = element.value;
+                            dataSource[right_key] = element.value;
                         });
                     } else {
                         element.attributes[left_key] = value;
@@ -116,34 +163,34 @@ class Template {
             });
             element.dataset.remove('bind-attr');
         });
-        root.querySelectorAll('[data-bind-class]').forEach((Element element) {
-            _parseParameters(element.dataset['bind-class'], parameters, (left_key, right_key, value) {
+        container.querySelectorAll('[data-bind-class]').forEach((Element element) {
+            _bindParameters(element.dataset['bind-class'], dataSource, (left_key, right_key, value) {
                 if (left_key != null && value) {
                     element.classes.add(left_key);                        
                 }
             });
             element.dataset.remove('bind-class');
         });
-        root.querySelectorAll('[data-bind-visible]').forEach((Element element) {
-            _parseParameters(element.dataset['bind-visible'], parameters, (left_key, right_key, value) {
+        container.querySelectorAll('[data-bind-visible]').forEach((Element element) {
+            _bindParameters(element.dataset['bind-visible'], dataSource, (left_key, right_key, value) {
                 if (left_key == null) {
                     element.hidden = !value;
                 }
             });
             element.dataset.remove('bind-visible');
         });
-        root.querySelectorAll('[data-bind-event]').forEach((Element element) {
-            _parseParameters(element.dataset['bind-event'], parameters, (left_key, right_key, value) {
+        container.querySelectorAll('[data-bind-event]').forEach((Element element) {
+            _bindParameters(element.dataset['bind-event'], dataSource, (left_key, right_key, value) {
                 if (left_key != null) {
                     element.on[left_key].listen(value);
                 }
             }, expectFunction: true);
             element.dataset.remove('bind-event');
         });
-        root.querySelectorAll('[data-bind-foreach]').forEach((Element element) {
+        container.querySelectorAll('[data-bind-foreach]').forEach((Element element) {
             var innerHtml = element.innerHtml;
             element.children.clear();
-            List list = parameters[element.dataset['bind-foreach']];
+            List list = dataSource[element.dataset['bind-foreach']];
             list.forEach((Map e) {
                 var html = innerHtml.replaceAllMapped(new RegExp('\\\${([^}]*)}'), (match) {
                     if (e.containsKey(match[1])) {
@@ -154,20 +201,21 @@ class Template {
             });
             element.dataset.remove('bind-foreach');
         });
-        root.querySelectorAll('[data-bind-view]').forEach((Element element) {
-            var viewRouter = parameters[element.dataset['bind-view']];
-            if (viewRouter is! ViewRouter) {
-                 throw new Exception("A view needs a router");
-            }
-            future = HttpRequest.getString(viewRouter.view)
-                ..then((String fileContents) {
-                    element.children.clear();
-                    element.children.add(new Element.html(fileContents, validator: validator));
-                })..catchError((error) {
-                    print(error.toString());
-                });
+        container.querySelectorAll('[data-bind-view]').forEach((Element element) {
+            _bindParameters(element.dataset['bind-view'], dataSource, (left_key, right_key, viewRouter) {
+               if (left_key == null) {
+                   if (viewRouter is! ViewRouter) {
+                        throw new Exception("A view needs a router");
+                   }
+                   _requestView(element, viewRouter, validator);
+                   viewRouter.changes.listen((record) {
+                       _requestView(element, viewRouter, validator);
+                   });
+                }
+            });
             element.dataset.remove('bind-view');
         });
-        root.style.display = 'block';
+        // Show the container
+        container.style.display = 'block';
     }
 }

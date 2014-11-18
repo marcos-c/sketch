@@ -14,8 +14,14 @@
 
 part of sketch;
 
-abstract class ViewRouter {
-    String path;
+abstract class ViewRouter extends Object with ChangeNotifier {
+    var _path;
+    
+    @reflectable get path => _path;
+    
+    @reflectable set path(value) {
+      _path = notifyPropertyChange(#path, _path, value);
+    }
     
     Map<String, String> _rules;
     

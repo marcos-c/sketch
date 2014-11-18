@@ -14,7 +14,7 @@
 
 part of sketch;
 
-class SimpleRouter extends Object with ViewRouter {
+class SimpleRouter extends ViewRouter {
     SimpleRouter(Map rules) {
         rules.forEach((path, view) {
             if (this.path == null) {
