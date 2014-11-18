@@ -63,4 +63,9 @@ void main() {
         var bind = new Template.bind('#test8', data);
         expect(bind.future, completion(equals('<p>Test</p>')));
     });
+    test('data-bind-foreach', () {
+        var data = { 'list': [ { 'url': '/view_1', 'label': '/View 1' }, { 'url': '/view_2', 'label': '/View 2' }] };
+        var bind = new Template.bind('#test9', data);
+        expect(querySelector('#test9 ul').innerHtml, equals('<li><a href="/view_1">/View 1</a></li><li><a href="/view_2">/View 2</a></li>'));
+    });
 }
