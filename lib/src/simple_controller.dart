@@ -14,15 +14,9 @@
 
 part of sketch;
 
-/// Simple bind-view [Router] implementation
-class SimpleRouter extends Router {
-    SimpleRouter(List<View> views) {
-        views.forEach((view) {
-            if (this.path == null) {
-                this.path = view.path;
-            }
-            addRule(view.path, view.view);
-            controller = view.controller;
-        });
-    }
+/// Simple bind-view [Controller] implementation
+class SimpleController extends Controller {
+    Map dataSource;
+    
+    SimpleController(Map this.dataSource);
 }

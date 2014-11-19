@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License
 
+/// Sketch is a utility library for developing web applications
 library sketch;
 
 import 'dart:html';
@@ -20,5 +21,10 @@ import 'dart:async';
 import 'package:observe/observe.dart';
 
 part 'src/template.dart';
-part 'src/view_router.dart';
+part 'src/router.dart';
+part 'src/view.dart';
+part 'src/controller.dart';
+
 part 'src/simple_router.dart';
+part 'src/simple_view.dart';
+part 'src/simple_controller.dart';

@@ -14,15 +14,26 @@
 
 part of sketch;
 
-/// Simple bind-view [Router] implementation
-class SimpleRouter extends Router {
-    SimpleRouter(List<View> views) {
-        views.forEach((view) {
-            if (this.path == null) {
-                this.path = view.path;
-            }
-            addRule(view.path, view.view);
-            controller = view.controller;
-        });
+/// Router interface for [Template] bind-view
+abstract class Router extends Object with ChangeNotifier {
+    var _path;
+    
+    @reflectable get path => _path;
+    
+    @reflectable set path(value) {
+      _path = notifyPropertyChange(#path, _path, value);
     }
+    
+    Map<String, String> _rules;
+    
+    var controller;
+    
+    void addRule(String path, String view) {
+        if (_rules == null) {
+            _rules = new Map();
+        }
+        _rules[path] = view;
+    }
+    
+    String get view => _rules[path]; 
 }

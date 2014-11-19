@@ -14,23 +14,7 @@
 
 part of sketch;
 
-abstract class ViewRouter extends Object with ChangeNotifier {
-    var _path;
-    
-    @reflectable get path => _path;
-    
-    @reflectable set path(value) {
-      _path = notifyPropertyChange(#path, _path, value);
-    }
-    
-    Map<String, String> _rules;
-    
-    void addRule(String path, String view) {
-        if (_rules == null) {
-            _rules = new Map();
-        }
-        _rules[path] = view;
-    }
-    
-    String get view => _rules[path]; 
+/// Controller interface for [Template] bind-view
+abstract class Controller {
+     
 }

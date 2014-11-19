@@ -16,39 +16,33 @@ part of sketch;
 
 /// Binding callback definition
 /// 
-/// left_key refers to the parameter key
-/// right_key refers to the key inside the data source
-/// value refers to the value inside the data source for right_key
+/// Where [left_key] refers to the parameter key, [right_key] refers to the
+/// key inside the data source and [value] refers to the value inside
+/// the data source for the [right_key].
 typedef BindingCallback(String left_key, String right_key, String value);
-
-/// Template utility class
+ 
+/// This class provides an easy to use templating system with data bindings
+///  
+/// Binding parameters are set throgh dataset attributes.
 /// 
-/// Supports the following bindings:
+/// Data sources are set using [Map]s.
 /// 
-///     data-bind-text
-///     data-bind-html
-///     data-bind-style
-///     data-bind-attr
-///     data-bind-class
-///     data-bind-visible
-///     data-bind-event     
-///     data-bind-foreach
-///     data-bind-view
+/// Binding examples:
+/// 
+/// data-bind-text="text"     
+/// data-bind-style="style"     
+/// data-bind-style="{color: textColor, background-color: backgroundColor}"     
+/// data-bind-attr="{href: action}"     
+/// data-bind-class="{box: isBox, house: isHouse, tree: isTree}"     
+/// data-bind-visible="isMale"     
+/// data-bind-event="{click: click}"     
+/// data-bind-view="router"
 class Template {
+    NodeValidatorBuilder validator;
+    
     Future future;
     
     /// Bind each parameter to it's data source
-    /// 
-    /// Valid patterns are:
-    /// 
-    ///     data-bind-text="text"
-    ///     data-bind-style="style"
-    ///     data-bind-style="{color: textColor, background-color: backgroundColor}"
-    ///     data-bind-attr="{href: action}"
-    ///     data-bind-class="{box: isBox, house: isHouse, tree: isTree}"
-    ///     data-bind-visible="isMale"
-    ///     data-bind-event="{click: click}"
-    ///     data-bind-view="router"
     void _bindParameters(String parameters, Map dataSource, BindingCallback callback, { expectFunction: false }) {
         var pattern = new RegExp(r"^{");
         if (!pattern.hasMatch(parameters)) {
@@ -93,30 +87,30 @@ class Template {
     }
     
     /// Request an set the view router path
-    ///  
-    /// TODO Add a controller instance to each view
-    /// TODO Add a view cache
-    void _requestView(Element element, ViewRouter viewRouter, NodeValidatorBuilder validator) {
-        future = HttpRequest.getString(viewRouter.view)
+    void _requestView(Element element, Router router) {
+        future = HttpRequest.getString(router.view)
             ..then((String fileContents) {
                 element.children.clear();
                 element.children.add(new Element.html(fileContents, validator: validator));
+                // Resolve all bindings inside the view
+                new Template.bindContainer(element, router.controller.dataSource);
             })
             ..catchError((error) {
                 print(error.toString());
             });
     }
     
-    Template.bind(String selector, Map dataSource) {
-        // Allow anchor elements when adding new elements
-        var validator = new NodeValidatorBuilder.common()
-            ..allowElement('a', attributes: ['href']);
+    /// Resolve all bindings inside a container element
+    Template.bindContainer(Element container, Map dataSource) {
+        // Allow additional elements when adding new content to the DOM
+        validator = new NodeValidatorBuilder.common()
+            ..allowElement('a', attributes: ['href'])
+            ..allowElement('ul', attributes: ['data-bind-foreach']);
         // Bind only the elements inside the container element
-        var container = querySelector(selector);
         container.querySelectorAll('[data-bind-text]').forEach((Element element) {
             _bindParameters(element.dataset['bind-text'], dataSource, (left_key, right_key, value) {
                 if (left_key == null) {
-                    // Textarea binding to parameters
+                    // Textarea onInput bind
                     if (element is TextAreaElement) {
                         element.value = value;
                         element.onInput.listen((event) {
@@ -150,7 +144,7 @@ class Template {
         container.querySelectorAll('[data-bind-attr]').forEach((Element element) {
             _bindParameters(element.dataset['bind-attr'], dataSource, (left_key, right_key, value) {
                 if (left_key != null) {
-                    // InputElement with binding to parameters
+                    // InputElement onInput bind
                     if (left_key == 'value' && element is InputElement) {
                         element.value = value;
                         element.onInput.listen((event) {
@@ -204,12 +198,12 @@ class Template {
         container.querySelectorAll('[data-bind-view]').forEach((Element element) {
             _bindParameters(element.dataset['bind-view'], dataSource, (left_key, right_key, viewRouter) {
                if (left_key == null) {
-                   if (viewRouter is! ViewRouter) {
+                   if (viewRouter is! Router) {
                         throw new Exception("A view needs a router");
                    }
-                   _requestView(element, viewRouter, validator);
+                   _requestView(element, viewRouter);
                    viewRouter.changes.listen((record) {
-                       _requestView(element, viewRouter, validator);
+                       _requestView(element, viewRouter);
                    });
                 }
             });
@@ -218,4 +212,7 @@ class Template {
         // Show the container
         container.style.display = 'block';
     }
+    
+    /// Resolve all bindings inside a container element identified by a CSS selector
+    Template.bind(String selector, Map dataSource) : this.bindContainer(querySelector(selector), dataSource);
 }

@@ -58,8 +58,8 @@ void main() {
         querySelector('#test7 a').click();
         expect(querySelector('#test7 a').innerHtml, equals('Clicked'));
     });
-    test('data-bind-view', () {
-        var data = { 'router': new SimpleRouter({ '/index': 'view/test.html' }) };
+    test('data-bind-view', () { 
+        var data = { 'router': new SimpleRouter([ new SimpleView('/index', 'view/test.html', new SimpleController({})) ]) };
         var bind = new Template.bind('#test8', data);
         expect(bind.future, completion(equals('<p>Test</p>')));
     });

@@ -14,15 +14,13 @@
 
 part of sketch;
 
-/// Simple bind-view [Router] implementation
-class SimpleRouter extends Router {
-    SimpleRouter(List<View> views) {
-        views.forEach((view) {
-            if (this.path == null) {
-                this.path = view.path;
-            }
-            addRule(view.path, view.view);
-            controller = view.controller;
-        });
-    }
+/// View interface for [Template] bind-view
+abstract class View {
+     String path;
+     
+     String view;
+     
+     Controller controller;
+     
+     View(this.path, this.view, this.controller);
 }
