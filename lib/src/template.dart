@@ -113,7 +113,7 @@ class Template {
                     // Textarea onInput bind
                     if (element is TextAreaElement) {
                         element.value = value;
-                        element.onInput.listen((event) {
+                        element.onKeyUp.listen((event) {
                             dataSource[right_key] = element.value;
                         });
                     } else {
@@ -147,7 +147,7 @@ class Template {
                     // InputElement onInput bind
                     if (left_key == 'value' && element is InputElement) {
                         element.value = value;
-                        element.onInput.listen((event) {
+                        element.onKeyUp.listen((KeyboardEvent event) {
                             dataSource[right_key] = element.value;
                         });
                     } else {
