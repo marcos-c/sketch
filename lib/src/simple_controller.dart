@@ -16,7 +16,5 @@ part of sketch;
 
 /// Simple bind-view [Controller] implementation
 class SimpleController extends Controller {
-    Map dataSource;
-    
-    SimpleController(Map this.dataSource);
+    SimpleController(Map dataSource) : super(dataSource); 
 }

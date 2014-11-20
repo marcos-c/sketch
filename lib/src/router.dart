@@ -24,16 +24,16 @@ abstract class Router extends Object with ChangeNotifier {
       _path = notifyPropertyChange(#path, _path, value);
     }
     
-    Map<String, String> _rules;
+    Map<String, View> _views;
     
-    var controller;
-    
-    void addRule(String path, String view) {
-        if (_rules == null) {
-            _rules = new Map();
+    void addRule(View view) {
+        if (_views == null) {
+            _views = new Map();
         }
-        _rules[path] = view;
+        _views[view.path] = view;
     }
     
-    String get view => _rules[path]; 
+    String get view => _views[path].view;
+    
+    Controller get controller => _views[path].controller;
 }
