@@ -19,7 +19,7 @@ part of sketch;
 /// Where [left_key] refers to the parameter key, [right_key] refers to the
 /// key inside the data source and [value] refers to the value inside
 /// the data source for the [right_key].
-typedef BindingCallback(String left_key, String right_key, String value);
+typedef BindingCallback(String left_key, String right_key, value);
  
 /// This class provides an easy to use templating system with data bindings
 ///  
