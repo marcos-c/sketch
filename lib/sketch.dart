@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License
 
-/// Sketch is a utility library for developing web applications
+/// Package library that will ease the development of server backed single page
+/// responsive Web applications
 library sketch;
 
 import 'dart:html';

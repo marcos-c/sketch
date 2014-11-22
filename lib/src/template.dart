@@ -26,17 +26,6 @@ typedef BindingCallback(String left_key, String right_key, value);
 /// Binding parameters are set throgh dataset attributes.
 /// 
 /// Data sources are set using [Map]s.
-/// 
-/// Binding examples:
-/// 
-/// data-bind-text="text"     
-/// data-bind-style="style"     
-/// data-bind-style="{color: textColor, background-color: backgroundColor}"     
-/// data-bind-attr="{href: action}"     
-/// data-bind-class="{box: isBox, house: isHouse, tree: isTree}"     
-/// data-bind-visible="isMale"     
-/// data-bind-event="{click: click}"     
-/// data-bind-view="router"
 class Template {
     NodeValidatorBuilder validator;
     

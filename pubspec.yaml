@@ -1,5 +1,5 @@
 name: sketch
-version: 0.0.2
+version: 0.0.2+1
 author: Marcos Cooper <marcos@releasepad.com>
 description: Sketch is a utility library for developing web applications
 homepage: https://github.com/marcos-c/sketch-dart
