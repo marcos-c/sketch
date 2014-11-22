@@ -5,7 +5,7 @@ Sketch is a Dart package library that will ease the development of server backed
 
 The objectives of this project are:
 
-First, to build a client side layout based templating system that markup will feel comfortable using.
+First, to build a client side layout based templating system that markup engineers will feel comfortable using.
 With a routing and view system that is at the same time flexible and easy to set up.
 Supports one and two-way binding of DOM elements with application variables.
 And is easy to localize to any language.
