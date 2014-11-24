@@ -20,6 +20,12 @@ part of sketch;
 /// key inside the data source and [value] refers to the value inside
 /// the data source for the [right_key].
 typedef BindingCallback(String left_key, String right_key, value);
+
+/// Event callback with [router] definition
+typedef EventCallback(Event event, Router router);
+
+/// Event callback with [router] and [dataSource] definition
+typedef EventWithDataCallback(Event event, Router router, Map dataSource);
  
 /// This class provides an easy to use templating system with data bindings
 ///  
@@ -82,7 +88,7 @@ class Template {
                 element.children.clear();
                 element.children.add(new Element.html(fileContents, validator: _validator));
                 // Resolve all bindings inside the view
-                new Template.bindContainer(element, router.controller.dataSource);
+                new Template.bindContainer(element, router.controller.dataSource, router);
             })
             ..catchError((error) {
                 print(error.toString());
@@ -90,7 +96,7 @@ class Template {
     }
     
     /// Resolve all bindings inside a container element
-    Template.bindContainer(Element container, Map dataSource) {
+    Template.bindContainer(Element container, Map dataSource, [ Router router ]) {
         // Allow additional elements when adding new content to the DOM
         _validator = new NodeValidatorBuilder.common()
             ..allowElement('a', attributes: ['href'])
@@ -167,7 +173,13 @@ class Template {
         container.querySelectorAll('[data-bind-event]').forEach((Element element) {
             _bindParameters(element.dataset['bind-event'], dataSource, (left_key, right_key, value) {
                 if (left_key != null) {
-                    element.on[left_key].listen(value);
+                    element.on[left_key].listen((event) {
+                        if (value is EventCallback) {
+                            value(event, router);                            
+                        } else if (value is EventWithDataCallback) {
+                            value(event, router, dataSource);                            
+                        }
+                    });
                 }
             }, expectFunction: true);
             element.dataset.remove('bind-event');
