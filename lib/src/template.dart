@@ -27,7 +27,7 @@ typedef BindingCallback(String left_key, String right_key, value);
 /// 
 /// Data sources are set using [Map]s.
 class Template {
-    NodeValidatorBuilder validator;
+    NodeValidatorBuilder _validator;
     
     Future future;
     
@@ -80,7 +80,7 @@ class Template {
         future = HttpRequest.getString(router.view)
             ..then((String fileContents) {
                 element.children.clear();
-                element.children.add(new Element.html(fileContents, validator: validator));
+                element.children.add(new Element.html(fileContents, validator: _validator));
                 // Resolve all bindings inside the view
                 new Template.bindContainer(element, router.controller.dataSource);
             })
@@ -92,8 +92,10 @@ class Template {
     /// Resolve all bindings inside a container element
     Template.bindContainer(Element container, Map dataSource) {
         // Allow additional elements when adding new content to the DOM
-        validator = new NodeValidatorBuilder.common()
+        _validator = new NodeValidatorBuilder.common()
             ..allowElement('a', attributes: ['href'])
+            ..allowElement('button', attributes: ['data-bind-event'])
+            ..allowElement('input', attributes: ['data-bind-attr'])
             ..allowElement('ul', attributes: ['data-bind-foreach']);
         // Bind only the elements inside the container element
         container.querySelectorAll('[data-bind-text]').forEach((Element element) {
@@ -180,7 +182,7 @@ class Template {
                         return e[match[1]];
                     }
                 });
-                element.children.add(new Element.html(html, validator: validator));
+                element.children.add(new Element.html(html, validator: _validator));
             });
             element.dataset.remove('bind-foreach');
         });
