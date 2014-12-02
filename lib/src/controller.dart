@@ -17,8 +17,16 @@ part of sketch;
 /// Controller interface for [Template] bind-view
 abstract class Controller {
     ObservableMap dataSource;
-        
-    Controller(Map dataSource) {
+
+    Controller() {
+        this.dataSource = new ObservableMap();
+    }
+
+    bind(String key, value) {
+        dataSource[key] = value;
+    }
+
+    Controller.from(Map dataSource) {
         this.dataSource = new ObservableMap.from(dataSource);
     }
 }
