@@ -98,12 +98,30 @@ class Template {
     /// Resolve all bindings inside a container element
     Template.bindContainer(Element container, Map dataSource, [ Router router ]) {
         // Allow additional elements when adding new content to the DOM
+        // TODO the validator should only be set once
         _validator = new NodeValidatorBuilder.common()
             ..allowElement('a', attributes: ['href'])
+            ..allowElement('span', attributes: ['data-bind-text'])
             ..allowElement('button', attributes: ['data-bind-event'])
             ..allowElement('input', attributes: ['data-bind-attr'])
             ..allowElement('ul', attributes: ['data-bind-foreach']);
         // Bind only the elements inside the container element
+        container.querySelectorAll('[data-bind-foreach]').forEach((Element element) {
+            var innerHtml = element.innerHtml;
+            element.children.clear();
+            List list = dataSource[element.dataset['bind-foreach']];
+            list.forEach((Map e) {
+                var html = innerHtml.replaceAllMapped(new RegExp('\\\${([^}]*)}'), (match) {
+                    if (e.containsKey(match[1])) {
+                        return e[match[1]];
+                    }
+                });
+                element.children.add(new Element.html(html, validator: _validator));
+            });
+            // Resolve all bindings inside the foreach
+            new Template.bindContainer(element, dataSource, router);
+            element.dataset.remove('bind-foreach');
+        });
         container.querySelectorAll('[data-bind-text]').forEach((Element element) {
             _bindParameters(element.dataset['bind-text'], dataSource, (left_key, right_key, value) {
                 if (left_key == null) {
@@ -183,20 +201,6 @@ class Template {
                 }
             }, expectFunction: true);
             element.dataset.remove('bind-event');
-        });
-        container.querySelectorAll('[data-bind-foreach]').forEach((Element element) {
-            var innerHtml = element.innerHtml;
-            element.children.clear();
-            List list = dataSource[element.dataset['bind-foreach']];
-            list.forEach((Map e) {
-                var html = innerHtml.replaceAllMapped(new RegExp('\\\${([^}]*)}'), (match) {
-                    if (e.containsKey(match[1])) {
-                        return e[match[1]];
-                    }
-                });
-                element.children.add(new Element.html(html, validator: _validator));
-            });
-            element.dataset.remove('bind-foreach');
         });
         container.querySelectorAll('[data-bind-view]').forEach((Element element) {
             _bindParameters(element.dataset['bind-view'], dataSource, (left_key, right_key, viewRouter) {
