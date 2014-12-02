@@ -21,7 +21,9 @@ abstract class Router extends Object with ChangeNotifier {
     @reflectable get path => _path;
     
     @reflectable set path(value) {
-      _path = notifyPropertyChange(#path, _path, value);
+        _path = notifyPropertyChange(#path, _path, value);
+        // TODO pushState only in main router
+        window.history.pushState(null, '', value);
     }
     
     Map<String, View> _views;
