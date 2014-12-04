@@ -15,7 +15,7 @@
 part of sketch;
 
 /// Binding callback definition
-/// 
+///
 /// Where [left_key] refers to the parameter key, [right_key] refers to the
 /// key inside the data source and [value] refers to the value inside
 /// the data source for the [right_key].
@@ -26,17 +26,17 @@ typedef EventCallback(Event event, Router router);
 
 /// Event callback with [router] and [dataSource] definition
 typedef EventWithDataCallback(Event event, Router router, Map dataSource);
- 
+
 /// This class provides an easy to use templating system with data bindings
-///  
+///
 /// Binding parameters are set throgh dataset attributes.
-/// 
+///
 /// Data sources are set using [Map]s.
 class Template {
     NodeValidatorBuilder _validator;
-    
+
     Future future;
-    
+
     /// Bind each parameter to it's data source
     void _bindParameters(String parameters, Map dataSource, BindingCallback callback, { expectFunction: false }) {
         var pattern = new RegExp(r"^{");
@@ -44,15 +44,19 @@ class Template {
             callback(null, parameters, dataSource[parameters]);
             if (dataSource is ObservableMap) {
                 dataSource.changes.listen((record) {
-                    if (record.first.key == parameters) {
-                        callback(null, parameters, dataSource[parameters]);
+                    if (record.first is PropertyChangeRecord) {
+                        // TODO check why we get a PropertyChangeRecord the first time
+                    } else if (record.first is MapChangeRecord) {
+                        if (record.first.key == parameters) {
+                            callback(null, parameters, dataSource[parameters]);
+                        }
                     }
                 });
             }
         } else { // key is a map of keys to keys inside the dataSource
             var left_key, right_key, value;
             pattern = new RegExp(r"(([\w-]*)\s*:\s*([\w-]*)),?\s*");
-            var matches = pattern.allMatches(parameters); 
+            var matches = pattern.allMatches(parameters);
             matches.forEach((match) {
                 left_key = match[2];
                 right_key = match[3];
@@ -61,7 +65,7 @@ class Template {
                         value = dataSource[match[3]];
                     } else {
                         throw new Exception('A function was expected');
-                    }                    
+                    }
                 } else {
                     if (dataSource[match[3]] is Function) {
                         value = dataSource[match[3]]();
@@ -72,15 +76,19 @@ class Template {
                 callback(left_key, right_key, value);
                 if (dataSource is ObservableMap) {
                     dataSource.changes.listen((record) {
-                        if (record.first.key == right_key) {
-                            callback(left_key, right_key, record.first.newValue);
+                        if (record.first is PropertyChangeRecord) {
+                            // TODO check why we get a PropertyChangeRecord the first time
+                        } else if (record.first is MapChangeRecord) {
+                            if (record.first.key == right_key) {
+                                callback(left_key, right_key, record.first.newValue);
+                            }
                         }
                     });
                 }
             });
         }
     }
-    
+
     /// Request an set the view router path
     void _requestView(Element element, Router router) {
         future = HttpRequest.getString(router.view)
@@ -94,7 +102,7 @@ class Template {
                 print(error.toString());
             });
     }
-    
+
     /// Resolve all bindings inside a container element
     Template.bindContainer(Element container, Map dataSource, [ Router router ]) {
         // Allow additional elements when adding new content to the DOM
@@ -110,16 +118,15 @@ class Template {
             var innerHtml = element.innerHtml;
             element.children.clear();
             List list = dataSource[element.dataset['bind-foreach']];
-            list.forEach((Map e) {
-                var html = innerHtml.replaceAllMapped(new RegExp('\\\${([^}]*)}'), (match) {
-                    if (e.containsKey(match[1])) {
-                        return e[match[1]];
-                    }
-                });
-                element.children.add(new Element.html(html, validator: _validator));
+            list.forEach((e) {
+                var new_element = new Element.html(innerHtml, validator: _validator);
+                if (e is Controller) {
+                    new Template.bindContainer(new_element, e.dataSource, router);
+                } else if (e is Map) {
+                    new Template.bindContainer(new_element, e, router);
+                }
+                element.children.add(new_element);
             });
-            // Resolve all bindings inside the foreach
-            new Template.bindContainer(element, dataSource, router);
             element.dataset.remove('bind-foreach');
         });
         container.querySelectorAll('[data-bind-text]').forEach((Element element) {
@@ -141,7 +148,7 @@ class Template {
         container.querySelectorAll('[data-bind-html]').forEach((Element element) {
             _bindParameters(element.dataset['bind-html'], dataSource, (left_key, right_key, value) {
                 if (left_key == null) {
-                    element.setInnerHtml(value);                    
+                    element.setInnerHtml(value);
                 }
             });
             element.dataset.remove('bind-html');
@@ -175,7 +182,7 @@ class Template {
         container.querySelectorAll('[data-bind-class]').forEach((Element element) {
             _bindParameters(element.dataset['bind-class'], dataSource, (left_key, right_key, value) {
                 if (left_key != null && value) {
-                    element.classes.add(left_key);                        
+                    element.classes.add(left_key);
                 }
             });
             element.dataset.remove('bind-class');
@@ -193,9 +200,9 @@ class Template {
                 if (left_key != null) {
                     element.on[left_key].listen((event) {
                         if (value is EventCallback) {
-                            value(event, router);                            
+                            value(event, router);
                         } else if (value is EventWithDataCallback) {
-                            value(event, router, dataSource);                            
+                            value(event, router, dataSource);
                         }
                     });
                 }
@@ -219,7 +226,7 @@ class Template {
         // Show the container
         container.style.display = 'block';
     }
-    
+
     /// Resolve all bindings inside a container element identified by a CSS selector
     Template.bind(String selector, Map dataSource) : this.bindContainer(querySelector(selector), dataSource);
 }
