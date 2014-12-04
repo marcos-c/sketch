@@ -1,7 +1,8 @@
-.pub/
-.settings/
-build/
-packages/
 .DS_Store
+.idea
+.pub
 .project
+.settings
+build
+packages
 pubspec.lock
