@@ -53,7 +53,7 @@ class Template {
                     }
                 });
             }
-        } else { // key is a map of keys to keys inside the dataSource
+        } else {
             var left_key, right_key, value;
             pattern = new RegExp(r"(([\w-]*)\s*:\s*([\w-]*)),?\s*");
             var matches = pattern.allMatches(parameters);
@@ -113,7 +113,7 @@ class Template {
             ..allowElement('button', attributes: ['data-bind-event'])
             ..allowElement('input', attributes: ['data-bind-attr'])
             ..allowElement('ul', attributes: ['data-bind-foreach']);
-        // Bind only the elements inside the container element
+        // Bind each element of the datasource to the embedded HTML
         container.querySelectorAll('[data-bind-foreach]').forEach((Element element) {
             var innerHtml = element.innerHtml;
             element.children.clear();
@@ -129,6 +129,7 @@ class Template {
             });
             element.dataset.remove('bind-foreach');
         });
+        // Bind dataSource variables to element text values
         container.querySelectorAll('[data-bind-text]').forEach((Element element) {
             _bindParameters(element.dataset['bind-text'], dataSource, (left_key, right_key, value) {
                 if (left_key == null) {
@@ -145,6 +146,7 @@ class Template {
             });
             element.dataset.remove('bind-text');
         });
+        // Bind dataSource variables to element innerHtml values
         container.querySelectorAll('[data-bind-html]').forEach((Element element) {
             _bindParameters(element.dataset['bind-html'], dataSource, (left_key, right_key, value) {
                 if (left_key == null) {
@@ -153,6 +155,7 @@ class Template {
             });
             element.dataset.remove('bind-html');
         });
+        // Bind dataSource variables to element style attribute values
         container.querySelectorAll('[data-bind-style]').forEach((Element element) {
             _bindParameters(element.dataset['bind-style'], dataSource, (left_key, rigth_key, value) {
                 if (left_key == null) {
@@ -163,6 +166,7 @@ class Template {
             });
             element.dataset.remove('bind-style');
         });
+        // Bind dataSource variables to element attributes
         container.querySelectorAll('[data-bind-attr]').forEach((Element element) {
             _bindParameters(element.dataset['bind-attr'], dataSource, (left_key, right_key, value) {
                 if (left_key != null) {
@@ -179,6 +183,7 @@ class Template {
             });
             element.dataset.remove('bind-attr');
         });
+        // Bind dataSource variables to element class attribute values
         container.querySelectorAll('[data-bind-class]').forEach((Element element) {
             _bindParameters(element.dataset['bind-class'], dataSource, (left_key, right_key, value) {
                 if (left_key != null && value) {
@@ -187,6 +192,7 @@ class Template {
             });
             element.dataset.remove('bind-class');
         });
+        // Bind dataSource variables to element visibility
         container.querySelectorAll('[data-bind-visible]').forEach((Element element) {
             _bindParameters(element.dataset['bind-visible'], dataSource, (left_key, right_key, value) {
                 if (left_key == null) {
@@ -195,6 +201,7 @@ class Template {
             });
             element.dataset.remove('bind-visible');
         });
+        // Bind dataSource functions to element event handlers
         container.querySelectorAll('[data-bind-event]').forEach((Element element) {
             _bindParameters(element.dataset['bind-event'], dataSource, (left_key, right_key, value) {
                 if (left_key != null) {
@@ -209,6 +216,7 @@ class Template {
             }, expectFunction: true);
             element.dataset.remove('bind-event');
         });
+        // Bind router instances to elements that will act as view containers
         container.querySelectorAll('[data-bind-view]').forEach((Element element) {
             _bindParameters(element.dataset['bind-view'], dataSource, (left_key, right_key, viewRouter) {
                if (left_key == null) {

@@ -16,17 +16,21 @@ part of sketch;
 
 /// Controller interface for [Template] bind-view
 abstract class Controller {
+    // TODO dataSource implementation should be private and have a better name
     ObservableMap dataSource;
 
+    /// Default constructor
     Controller() {
         this.dataSource = new ObservableMap();
     }
 
-    bind(String key, value) {
-        dataSource[key] = value;
-    }
-
+    /// Build a new controller from an external dataSource
     Controller.from(Map dataSource) {
         this.dataSource = new ObservableMap.from(dataSource);
+    }
+
+    /// Binds a variable to the dataSource
+    bind(String key, value) {
+        dataSource[key] = value;
     }
 }
