@@ -35,7 +35,23 @@ abstract class Router extends Object with ChangeNotifier {
         _views[view.path] = view;
     }
     
-    String get view => _views[path].view;
+    String get view {
+        for (View view in _views.values) {
+            var pattern = new RegExp("^" + view.path.replaceAll('/', r'\/') + "\$");
+            if (pattern.hasMatch(_path)) {
+                return view.view;
+            }
+        }
+        throw new Exception(_path);
+    }
     
-    Controller get controller => _views[path].controller;
+    Controller get controller {
+        for (View view in _views.values) {
+            var pattern = new RegExp("^" + view.path.replaceAll('/', r'\/') + "\$");
+            if (pattern.hasMatch(_path)) {
+                return view.controller;
+            }
+        }
+        throw new Exception(_path);
+    }
 }
