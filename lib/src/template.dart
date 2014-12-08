@@ -112,127 +112,134 @@ class Template {
             ..allowElement('span', attributes: ['data-bind-text'])
             ..allowElement('button', attributes: ['data-bind-event'])
             ..allowElement('input', attributes: ['data-bind-attr'])
-            ..allowElement('ul', attributes: ['data-bind-foreach']);
-        // Bind each element of the datasource to the embedded HTML
-        container.querySelectorAll('[data-bind-foreach]').forEach((Element element) {
-            var innerHtml = element.innerHtml;
-            element.children.clear();
-            List list = dataSource[element.dataset['bind-foreach']];
-            list.forEach((e) {
-                var new_element = new Element.html(innerHtml, validator: _validator);
-                if (e is Controller) {
-                    new Template.bindContainer(new_element, e.dataSource, router);
-                } else if (e is Map) {
-                    new Template.bindContainer(new_element, e, router);
-                }
-                element.children.add(new_element);
-            });
-            element.dataset.remove('bind-foreach');
-        });
-        // Bind dataSource variables to element text values
-        container.querySelectorAll('[data-bind-text]').forEach((Element element) {
-            _bindParameters(element.dataset['bind-text'], dataSource, (left_key, right_key, value) {
-                if (left_key == null) {
-                    // Textarea onInput bind
-                    if (element is TextAreaElement) {
-                        element.value = value;
-                        element.onKeyUp.listen((event) {
-                            dataSource[right_key] = element.value;
-                        });
-                    } else {
-                        element.text = value;
+            ..allowElement('ul', attributes: ['data-bind-foreach'])
+            ..allowElement('tbody', attributes: ['data-bind-foreach']);
+        // Check that the container is not null
+        if (container != null) {
+            // Bind each element of the datasource to the embedded HTML
+            container.querySelectorAll('[data-bind-foreach]').forEach((Element element) {
+                var template = element.children.first.clone(true);
+                element.children.clear();
+                List list = dataSource[element.dataset['bind-foreach']];
+                list.forEach((e) {
+                    var new_element = template.clone(true);
+                    if (e is Controller) {
+                        new Template.bindContainer(new_element, e.dataSource, router);
+                    } else if (e is Map) {
+                        new Template.bindContainer(new_element, e, router);
                     }
-                }
+                    element.children.add(new_element);
+                });
+                element.dataset.remove('bind-foreach');
             });
-            element.dataset.remove('bind-text');
-        });
-        // Bind dataSource variables to element innerHtml values
-        container.querySelectorAll('[data-bind-html]').forEach((Element element) {
-            _bindParameters(element.dataset['bind-html'], dataSource, (left_key, right_key, value) {
-                if (left_key == null) {
-                    element.setInnerHtml(value);
-                }
-            });
-            element.dataset.remove('bind-html');
-        });
-        // Bind dataSource variables to element style attribute values
-        container.querySelectorAll('[data-bind-style]').forEach((Element element) {
-            _bindParameters(element.dataset['bind-style'], dataSource, (left_key, rigth_key, value) {
-                if (left_key == null) {
-                    element.setAttribute('style', value);
-                } else {
-                    element.style.setProperty(left_key, value);
-                }
-            });
-            element.dataset.remove('bind-style');
-        });
-        // Bind dataSource variables to element attributes
-        container.querySelectorAll('[data-bind-attr]').forEach((Element element) {
-            _bindParameters(element.dataset['bind-attr'], dataSource, (left_key, right_key, value) {
-                if (left_key != null) {
-                    // InputElement onInput bind
-                    if (left_key == 'value' && element is InputElement) {
-                        element.value = value;
-                        element.onKeyUp.listen((KeyboardEvent event) {
-                            dataSource[right_key] = element.value;
-                        });
-                    } else {
-                        element.attributes[left_key] = value;
-                    }
-                }
-            });
-            element.dataset.remove('bind-attr');
-        });
-        // Bind dataSource variables to element class attribute values
-        container.querySelectorAll('[data-bind-class]').forEach((Element element) {
-            _bindParameters(element.dataset['bind-class'], dataSource, (left_key, right_key, value) {
-                if (left_key != null && value) {
-                    element.classes.add(left_key);
-                }
-            });
-            element.dataset.remove('bind-class');
-        });
-        // Bind dataSource variables to element visibility
-        container.querySelectorAll('[data-bind-visible]').forEach((Element element) {
-            _bindParameters(element.dataset['bind-visible'], dataSource, (left_key, right_key, value) {
-                if (left_key == null) {
-                    element.hidden = !value;
-                }
-            });
-            element.dataset.remove('bind-visible');
-        });
-        // Bind dataSource functions to element event handlers
-        container.querySelectorAll('[data-bind-event]').forEach((Element element) {
-            _bindParameters(element.dataset['bind-event'], dataSource, (left_key, right_key, value) {
-                if (left_key != null) {
-                    element.on[left_key].listen((event) {
-                        if (value is EventCallback) {
-                            value(event, router);
-                        } else if (value is EventWithDataCallback) {
-                            value(event, router, dataSource);
+            // Bind dataSource variables to element text values
+            container.querySelectorAll('[data-bind-text]').forEach((Element element) {
+                _bindParameters(element.dataset['bind-text'], dataSource, (left_key, right_key, value) {
+                    if (left_key == null) {
+                        // Textarea onInput bind
+                        if (element is TextAreaElement) {
+                            element.value = value;
+                            element.onKeyUp.listen((event) {
+                                dataSource[right_key] = element.value;
+                            });
+                        } else {
+                            element.text = value;
                         }
-                    });
-                }
-            }, expectFunction: true);
-            element.dataset.remove('bind-event');
-        });
-        // Bind router instances to elements that will act as view containers
-        container.querySelectorAll('[data-bind-view]').forEach((Element element) {
-            _bindParameters(element.dataset['bind-view'], dataSource, (left_key, right_key, viewRouter) {
-               if (left_key == null) {
-                   if (viewRouter is! Router) {
-                        throw new Exception("A view needs a router");
-                   }
-                   _requestView(element, viewRouter);
-                   viewRouter.changes.listen((record) {
-                       _requestView(element, viewRouter);
-                   });
-                }
+                    }
+                });
+                element.dataset.remove('bind-text');
             });
-            element.dataset.remove('bind-view');
-        });
-        // Show the container
-        container.style.display = 'block';
+            // Bind dataSource variables to element innerHtml values
+            container.querySelectorAll('[data-bind-html]').forEach((Element element) {
+                _bindParameters(element.dataset['bind-html'], dataSource, (left_key, right_key, value) {
+                    if (left_key == null) {
+                        element.setInnerHtml(value);
+                    }
+                });
+                element.dataset.remove('bind-html');
+            });
+            // Bind dataSource variables to element style attribute values
+            container.querySelectorAll('[data-bind-style]').forEach((Element element) {
+                _bindParameters(element.dataset['bind-style'], dataSource, (left_key, rigth_key, value) {
+                    if (left_key == null) {
+                        element.setAttribute('style', value);
+                    } else {
+                        element.style.setProperty(left_key, value);
+                    }
+                });
+                element.dataset.remove('bind-style');
+            });
+            // Bind dataSource variables to element attributes
+            container.querySelectorAll('[data-bind-attr]').forEach((Element element) {
+                _bindParameters(element.dataset['bind-attr'], dataSource, (left_key, right_key, value) {
+                    if (left_key != null) {
+                        // InputElement onInput bind
+                        if (left_key == 'value' && element is InputElement) {
+                            element.value = value;
+                            element.onKeyUp.listen((KeyboardEvent event) {
+                                dataSource[right_key] = element.value;
+                            });
+                        } else {
+                            element.attributes[left_key] = value;
+                        }
+                    }
+                });
+                element.dataset.remove('bind-attr');
+            });
+            // Bind dataSource variables to element class attribute values
+            container.querySelectorAll('[data-bind-class]').forEach((Element element) {
+                _bindParameters(element.dataset['bind-class'], dataSource, (left_key, right_key, value) {
+                    if (left_key != null && value) {
+                        element.classes.add(left_key);
+                    }
+                });
+                element.dataset.remove('bind-class');
+            });
+            // Bind dataSource variables to element visibility
+            container.querySelectorAll('[data-bind-visible]').forEach((Element element) {
+                _bindParameters(element.dataset['bind-visible'], dataSource, (left_key, right_key, value) {
+                    if (left_key == null) {
+                        element.hidden = !value;
+                    }
+                });
+                element.dataset.remove('bind-visible');
+            });
+            // Bind dataSource functions to element event handlers
+            container.querySelectorAll('[data-bind-event]').forEach((Element element) {
+                _bindParameters(element.dataset['bind-event'], dataSource, (left_key, right_key, value) {
+                    if (left_key != null) {
+                        element.on[left_key].listen((event) {
+                            if (value is EventCallback) {
+                                value(event, router);
+                            } else if (value is EventWithDataCallback) {
+                                value(event, router, dataSource);
+                            }
+                        });
+                    }
+                }, expectFunction: true);
+                element.dataset.remove('bind-event');
+            });
+            // Bind router instances to elements that will act as view containers
+            container.querySelectorAll('[data-bind-view]').forEach((Element element) {
+                _bindParameters(element.dataset['bind-view'], dataSource, (left_key, right_key, viewRouter) {
+                    if (left_key == null) {
+                        if (viewRouter is! Router) {
+                            throw new Exception("A view needs a router");
+                        }
+                        _requestView(element, viewRouter);
+                        viewRouter.changes.listen((record) {
+                            _requestView(element, viewRouter);
+                        });
+                    }
+                });
+                element.dataset.remove('bind-view');
+            });
+            // Show the container
+            if (container is TableRowElement) {
+            } else {
+                container.style.display = 'block';
+            }
+        }
     }
 
     /// Resolve all bindings inside a container element identified by a CSS selector
