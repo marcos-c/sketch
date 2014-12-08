@@ -20,7 +20,7 @@ abstract class Router extends Object with ChangeNotifier {
     var _path;
 
     // True if this router is the main router
-    bool _mainRouter;
+    bool pushState;
 
     // TODO this should be a rule container and not a view container
     Map<String, View> _views;
@@ -33,7 +33,7 @@ abstract class Router extends Object with ChangeNotifier {
     /// If this is the main router it also pushes state to the browser
     @reflectable set path(value) {
         _path = notifyPropertyChange(#path, _path, value);
-        if (_mainRouter) {
+        if (pushState == null || pushState) {
             window.history.pushState(null, '', value);
         }
     }
