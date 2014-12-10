@@ -213,6 +213,8 @@ class Template {
                                 value(event, router);
                             } else if (value is EventWithDataCallback) {
                                 value(event, router, dataSource);
+                            } else {
+                                value(event);
                             }
                         });
                     }
