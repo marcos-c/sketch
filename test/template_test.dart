@@ -49,23 +49,22 @@ void main() {
         expect(querySelector('#test6 > p > span').hidden, false);
     });
     test('data-bind-event', () {
-        var data = {
+        new Template.bind('#test7', {
             'click': (event) {
                 querySelector('#test7 a').setInnerHtml('Clicked');
             }
-        };
-        new Template.bind('#test7', data);
+        });
         querySelector('#test7 a').click();
         expect(querySelector('#test7 a').innerHtml, equals('Clicked'));
     });
-    test('data-bind-view', () { 
-        var data = { 'router': new SimpleRouter([ new SimpleView('/index', 'view/test.html', new SimpleController({})) ]) };
+    test('data-bind-router', () {
+        var data = { 'router': new SimpleRouter([ new SimpleView('/template_test.html', 'template_test_view.html', new SimpleController({})) ]) };
         var bind = new Template.bind('#test8', data);
         expect(bind.future, completion(equals('<p>Test</p>')));
     });
     test('data-bind-foreach', () {
-        var data = { 'list': [ { 'url': '/view_1', 'label': '/View 1' }, { 'url': '/view_2', 'label': '/View 2' }] };
+        var data = { 'list': [ { 'url': '/view_1', 'label': 'View 1' }, { 'url': '/view_2', 'label': 'View 2' }] };
         var bind = new Template.bind('#test9', data);
-        expect(querySelector('#test9 ul').innerHtml, equals('<li><a href="/view_1">/View 1</a></li><li><a href="/view_2">/View 2</a></li>'));
+        expect(querySelector('#test9 ul').innerHtml, equals('<li style="display: block;"><a href="/view_1">View 1</a></li><li style="display: block;"><a href="/view_2">View 2</a></li>'));
     });
 }

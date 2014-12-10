@@ -28,14 +28,14 @@
             <p><a data-bind-event="{click: click}">Action</a></p>
         </div>
         <div id="test8">
-            <div data-bind-view="router"></div>
+            <div data-bind-router="router"></div>
         </div>
         <div id="test9">
             <ul data-bind-foreach="list">
-                <li><a href="${url}">${label}</a></li>
+                <li><a data-bind-attr="{href: url}" data-bind-text="label"></a></li>
             </ul>
         </div>
-        <script type="application/dart" src="index.dart"></script>
-        <script src="packages/browser/dart.js"></script>
+        <script type="application/dart" src="template_test.dart"></script>
+        <script src="/packages/browser/dart.js"></script>
     </body>
 </html>
