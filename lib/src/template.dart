@@ -220,19 +220,19 @@ class Template {
                 element.dataset.remove('bind-event');
             });
             // Bind router instances to elements that will act as view containers
-            container.querySelectorAll('[data-bind-view]').forEach((Element element) {
-                _bindParameters(element.dataset['bind-view'], dataSource, (left_key, right_key, viewRouter) {
+            container.querySelectorAll('[data-bind-router]').forEach((Element element) {
+                _bindParameters(element.dataset['bind-router'], dataSource, (left_key, right_key, router) {
                     if (left_key == null) {
-                        if (viewRouter is! Router) {
-                            throw new Exception("A view needs a router");
+                        if (router is! Router) {
+                            throw new Exception("A router was expected");
                         }
-                        _requestView(element, viewRouter);
-                        viewRouter.changes.listen((record) {
-                            _requestView(element, viewRouter);
+                        _requestView(element, router);
+                        router.changes.listen((record) {
+                            _requestView(element, router);
                         });
                     }
                 });
-                element.dataset.remove('bind-view');
+                element.dataset.remove('bind-router');
             });
             // Show the container
             if (container is TableRowElement) {
