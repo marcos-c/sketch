@@ -21,7 +21,7 @@ class SimpleRouter extends Router {
             if (this.path == null) {
                 this.path = view.path;
             }
-            addRule(view);
+            addView(view);
         });
     }
 }

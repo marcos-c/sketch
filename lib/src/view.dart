@@ -14,17 +14,19 @@
 
 part of sketch;
 
-/// View interface for [Template] bind-view
+/// View interface for [Template] bind-router
 abstract class View {
-     // TODO should the path be included in the view? should it be private?
+     // View URI
      String path;
 
-     /// Contains the file name and path to the view HTML
-     String view;
+     Future future;
 
-     /// Contains the [Controller] or [Map] instance that resolves as dataSource of this view
-     Controller controller;
+     /// Contains the file name and path to the view HTML source
+     String source;
+
+     /// Contains the template bindings for the view
+     Map bindings;
 
      /// Default constructor
-     View(this.path, this.view, this.controller);
+     View(this.path, this.source, this.bindings);
 }
