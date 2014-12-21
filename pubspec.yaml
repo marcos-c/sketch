@@ -1,5 +1,5 @@
 name: sketch
-version: 0.1.0+1
+version: 0.1.0+2
 author: Marcos Cooper <marcos@releasepad.com>
 description: Package library that will ease the development of server backed single page responsive Web applications
 homepage: https://github.com/marcos-c/sketch-dart

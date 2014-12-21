@@ -16,10 +16,5 @@ part of sketch;
 
 /// Simple bind-view [View] implementation
 class SimpleView extends View {
-    Completer completer;
-
-    SimpleView(String path, String view, Map bindings) : super(path, view, bindings) {
-        completer = new Completer();
-        future = completer.future;
-    }
+    SimpleView(String path, String view, Map bindings) : super(path, view, bindings);
 }

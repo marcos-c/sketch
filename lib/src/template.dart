@@ -94,7 +94,6 @@ class Template {
                 element.children.add(new Element.html(fileContents, validator: _validator));
                 // Resolve all bindings inside the view
                 new Template.bindContainer(element, router.bindings, router);
-                view.completer.complete(element.innerHtml);
             })
             ..catchError((error) {
                 print(error.toString());

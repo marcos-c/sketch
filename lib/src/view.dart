@@ -19,8 +19,6 @@ abstract class View {
      // View URI
      String path;
 
-     Future future;
-
      /// Contains the file name and path to the view HTML source
      String source;
 
