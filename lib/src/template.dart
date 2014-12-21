@@ -136,12 +136,12 @@ class Template {
                     if (left_key == null) {
                         // Textarea onInput bind
                         if (element is TextAreaElement) {
-                            element.value = value;
+                            element.value = (value is String) ? value : value.toString();
                             element.onKeyUp.listen((event) {
                                 bindings[right_key] = element.value;
                             });
                         } else {
-                            element.text = value;
+                            element.text = (value is String) ? value : value.toString();
                         }
                     }
                 });
@@ -173,12 +173,12 @@ class Template {
                     if (left_key != null) {
                         // InputElement onInput bind
                         if (left_key == 'value' && element is InputElement) {
-                            element.value = value;
+                            element.value = (value is String) ? value : value.toString();
                             element.onKeyUp.listen((KeyboardEvent event) {
                                 bindings[right_key] = element.value;
                             });
                         } else {
-                            element.attributes[left_key] = value;
+                            element.attributes[left_key] = (value is String) ? value : value.toString();
                         }
                     }
                 });
