@@ -39,18 +39,17 @@ class Template {
     void _bindParameters(String parameters, Map bindings, BindingCallback callback, { expectFunction: false }) {
         var pattern = new RegExp(r"^{");
         if (!pattern.hasMatch(parameters)) {
-            callback(null, parameters, bindings[parameters]);
-            if (bindings is ObservableMap) {
-                bindings.changes.listen((record) {
-                    if (record.first is PropertyChangeRecord) {
-                        // TODO check why we get a PropertyChangeRecord the first time
-                    } else if (record.first is MapChangeRecord) {
-                        if (record.first.key == parameters) {
-                            callback(null, parameters, bindings[parameters]);
-                        }
-                    }
-                });
+            if (bindings is! ObservableMap) {
+                bindings = new ObservableMap.from(bindings);
             }
+            callback(null, parameters, bindings[parameters]);
+            bindings.changes.listen((record) {
+                if (record.first is MapChangeRecord) {
+                    if (record.first.key == parameters) {
+                        callback(null, parameters, bindings[parameters]);
+                    }
+                }
+            });
         } else {
             var left_key, right_key, value;
             pattern = new RegExp(r"(([\w-]*)\s*:\s*([\w-]*)),?\s*");
@@ -71,18 +70,17 @@ class Template {
                         value = bindings[match[3]];
                     }
                 }
-                callback(left_key, right_key, value);
-                if (bindings is ObservableMap) {
-                    bindings.changes.listen((record) {
-                        if (record.first is PropertyChangeRecord) {
-                            // TODO check why we get a PropertyChangeRecord the first time
-                        } else if (record.first is MapChangeRecord) {
-                            if (record.first.key == right_key) {
-                                callback(left_key, right_key, record.first.newValue);
-                            }
-                        }
-                    });
+                if (bindings is! ObservableMap) {
+                    bindings = new ObservableMap.from(bindings);
                 }
+                callback(left_key, right_key, value);
+                bindings.changes.listen((record) {
+                    if (record.first is MapChangeRecord) {
+                        if (record.first.key == right_key) {
+                            callback(left_key, right_key, record.first.newValue);
+                        }
+                    }
+                });
             });
         }
     }
@@ -123,10 +121,20 @@ class Template {
                 var template = element.children.first.clone(true);
                 element.children.clear();
                 List list = bindings[element.dataset['bind-foreach']];
+                if (list is! ObservableList) {
+                    list = new ObservableList.from(list);
+                }
                 list.forEach((e) {
                     var new_element = template.clone(true);
                     new Template.bindContainer(new_element, e, router);
                     element.children.add(new_element);
+                });
+                list.changes.listen((record) {
+                    list.forEach((e) {
+                        var new_element = template.clone(true);
+                        new Template.bindContainer(new_element, e, router);
+                        element.children.add(new_element);
+                    });
                 });
                 element.dataset.remove('bind-foreach');
             });
