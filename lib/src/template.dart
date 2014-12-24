@@ -43,12 +43,12 @@ class Template {
                 bindings = new ObservableMap.from(bindings);
             }
             callback(null, parameters, bindings[parameters]);
-            bindings.changes.listen((record) {
-                if (record.first is MapChangeRecord) {
-                    if (record.first.key == parameters) {
+            bindings.changes.listen((List<ChangeRecord> records) {
+                records.forEach((record) {
+                    if (record is MapChangeRecord && record.key == parameters) {
                         callback(null, parameters, bindings[parameters]);
                     }
-                }
+                });
             });
         } else {
             var left_key, right_key, value;
@@ -74,12 +74,12 @@ class Template {
                     bindings = new ObservableMap.from(bindings);
                 }
                 callback(left_key, right_key, value);
-                bindings.changes.listen((record) {
-                    if (record.first is MapChangeRecord) {
-                        if (record.first.key == right_key) {
-                            callback(left_key, right_key, record.first.newValue);
+                bindings.changes.listen((List<ChangeRecord> records) {
+                    records.forEach((record) {
+                        if (record is MapChangeRecord && record.key == right_key) {
+                            callback(left_key, right_key, record.newValue);
                         }
-                    }
+                    });
                 });
             });
         }
@@ -128,7 +128,7 @@ class Template {
                     new Template.bindContainer(new_element, e, router);
                     element.children.add(new_element);
                 });
-                list.changes.listen((record) {
+                list.changes.listen((List<ChangeRecord> records) {
                     list.forEach((e) {
                         var new_element = template.clone(true);
                         new Template.bindContainer(new_element, e, router);
@@ -234,7 +234,7 @@ class Template {
                             throw new Exception("A router was expected");
                         }
                         _requestView(element, router);
-                        router.changes.listen((record) {
+                        router.changes.listen((List<ChangeRecord> records) {
                             _requestView(element, router);
                         });
                     }
