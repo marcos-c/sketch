@@ -140,10 +140,11 @@ class Template {
                             element.children.add(new_element);
                         });
                     });
-                    element.dataset.remove('bind-foreach');
                 } else {
+                    element.children.clear();
                     print("Warning! Bind target '${element.dataset['bind-foreach']}' not found");
                 }
+                element.dataset.remove('bind-foreach');
             });
             // Bind variables to element text values
             container.querySelectorAll('[data-bind-text]').forEach((Element element) {
