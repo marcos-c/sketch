@@ -39,17 +39,21 @@ class Template {
     void _bindParameters(String parameters, Map bindings, BindingCallback callback, { expectFunction: false }) {
         var pattern = new RegExp(r"^{");
         if (!pattern.hasMatch(parameters)) {
-            if (bindings is! ObservableMap) {
-                bindings = new ObservableMap.from(bindings);
-            }
-            callback(null, parameters, bindings[parameters]);
-            bindings.changes.listen((List<ChangeRecord> records) {
-                records.forEach((record) {
-                    if (record is MapChangeRecord && record.key == parameters) {
-                        callback(null, parameters, bindings[parameters]);
-                    }
+            if (bindings.containsKey(parameters)) {
+                if (bindings is! ObservableMap) {
+                    bindings = new ObservableMap.from(bindings);
+                }
+                callback(null, parameters, bindings[parameters]);
+                bindings.changes.listen((List<ChangeRecord> records) {
+                    records.forEach((record) {
+                        if (record is MapChangeRecord && record.key == parameters) {
+                            callback(null, parameters, bindings[parameters]);
+                        }
+                    });
                 });
-            });
+            } else {
+                print("Warning! Bind target '${parameters}' not found");
+            }
         } else {
             var left_key, right_key, value;
             pattern = new RegExp(r"(([\w-]*)\s*:\s*([\w-]*)),?\s*");
@@ -117,25 +121,29 @@ class Template {
         if (container != null) {
             // Bind each element to the embedded HTML
             container.querySelectorAll('[data-bind-foreach]').forEach((Element element) {
-                var template = element.children.first.clone(true);
-                element.children.clear();
-                List list = bindings[element.dataset['bind-foreach']];
-                if (list is! ObservableList) {
-                    list = new ObservableList.from(list);
-                }
-                list.forEach((e) {
-                    var new_element = template.clone(true);
-                    new Template.bindContainer(new_element, e, router);
-                    element.children.add(new_element);
-                });
-                list.changes.listen((List<ChangeRecord> records) {
+                if (bindings.containsKey(element.dataset['bind-foreach'])) {
+                    var template = element.children.first.clone(true);
+                    element.children.clear();
+                    List list = bindings[element.dataset['bind-foreach']];
+                    if (list is! ObservableList) {
+                        list = new ObservableList.from(list);
+                    }
                     list.forEach((e) {
                         var new_element = template.clone(true);
                         new Template.bindContainer(new_element, e, router);
                         element.children.add(new_element);
                     });
-                });
-                element.dataset.remove('bind-foreach');
+                    list.changes.listen((List<ChangeRecord> records) {
+                        list.forEach((e) {
+                            var new_element = template.clone(true);
+                            new Template.bindContainer(new_element, e, router);
+                            element.children.add(new_element);
+                        });
+                    });
+                    element.dataset.remove('bind-foreach');
+                } else {
+                    print("Warning! Bind target '${element.dataset['bind-foreach']}' not found");
+                }
             });
             // Bind variables to element text values
             container.querySelectorAll('[data-bind-text]').forEach((Element element) {
