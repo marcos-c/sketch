@@ -18,10 +18,18 @@ part of sketch;
 class SimpleRouter extends Router {
     SimpleRouter(List<View> views) {
         views.forEach((view) {
-            if (this.path == null) {
-                this.path = view.path;
-            }
             addView(view);
+        });
+        if (this.path == null) {
+            var hash = window.location.hash;
+            if (hash != '') {
+                this.path = hash;
+            } else {
+                this.path = views.first.path;
+            }
+        }
+        window.onHashChange.listen((HashChangeEvent e) {
+            this.path = window.location.hash;
         });
     }
 }
