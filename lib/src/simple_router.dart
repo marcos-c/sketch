@@ -16,7 +16,13 @@ part of sketch;
 
 /// Simple bind-view [Router] implementation
 class SimpleRouter extends Router {
-    SimpleRouter(List<View> views) {
+    /// Initialize a view router from a list of views
+    SimpleRouter.from(List<View> views) {
+        addViews(views);
+    }
+
+    /// Add more views to the router
+    void addViews(List<View> views) {
         views.forEach((view) {
             addView(view);
         });
