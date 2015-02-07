@@ -114,8 +114,10 @@ class Template {
                 ..allowElement('p', attributes: ['data-bind-text'])
                 ..allowElement('button', attributes: ['data-bind-event'])
                 ..allowElement('input', attributes: ['data-bind-attr'])
+                ..allowElement('option', attributes: ['data-bind-attr'])
                 ..allowElement('ul', attributes: ['data-bind-foreach'])
-                ..allowElement('tbody', attributes: ['data-bind-foreach']);
+                ..allowElement('tbody', attributes: ['data-bind-foreach'])
+                ..allowElement('select', attributes: ['data-bind-foreach']);
         }
         // Check that the container is not null
         if (container != null) {
