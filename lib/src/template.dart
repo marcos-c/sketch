@@ -110,22 +110,27 @@ class Template {
         if (_validator == null) {
             _validator = new NodeValidatorBuilder.common()
                 ..allowElement('a', attributes: ['href'])
-                ..allowElement('span', attributes: ['data-bind-text'])
-                ..allowElement('p', attributes: ['data-bind-text'])
-                ..allowElement('button', attributes: ['data-bind-event'])
-                ..allowElement('input', attributes: ['data-bind-attr'])
-                ..allowElement('select', attributes: ['data-bind-attr'])
-                ..allowElement('option', attributes: ['data-bind-attr'])
-                ..allowElement('ul', attributes: ['data-bind-foreach'])
-                ..allowElement('tbody', attributes: ['data-bind-foreach'])
-                ..allowElement('select', attributes: ['data-bind-foreach']);
+                ..allowElement('span', attributes: ['data-bind-text', 'data-bind-attr', 'data-bind-style', 'data-bind-class', 'data-bind-visible', 'data-bind-event'])
+                ..allowElement('p', attributes: ['data-bind-text', 'data-bind-attr', 'data-bind-style', 'data-bind-class', 'data-bind-visible', 'data-bind-event'])
+                ..allowElement('button', attributes: ['data-bind-text', 'data-bind-attr', 'data-bind-style', 'data-bind-class', 'data-bind-visible', 'data-bind-event'])
+                ..allowElement('input', attributes: ['data-bind-attr', 'data-bind-style', 'data-bind-class', 'data-bind-visible', 'data-bind-event'])
+                ..allowElement('textarea', attributes: ['data-bind-text', 'data-bind-attr', 'data-bind-style', 'data-bind-class', 'data-bind-visible', 'data-bind-event'])
+                ..allowElement('select', attributes: ['data-bind-attr', 'data-bind-style', 'data-bind-class', 'data-bind-visible', 'data-bind-event', 'data-bind-foreach'])
+                ..allowElement('option', attributes: ['data-bind-text', 'data-bind-attr'])
+                ..allowElement('ul', attributes: ['data-bind-attr', 'data-bind-style', 'data-bind-class', 'data-bind-visible', 'data-bind-event', 'data-bind-foreach'])
+                ..allowElement('table', attributes: ['data-bind-attr', 'data-bind-style', 'data-bind-class', 'data-bind-visible', 'data-bind-event', 'data-bind-foreach'])
+                ..allowElement('thead', attributes: ['data-bind-attr', 'data-bind-style', 'data-bind-class', 'data-bind-visible', 'data-bind-event', 'data-bind-foreach'])
+                ..allowElement('tbody', attributes: ['data-bind-attr', 'data-bind-style', 'data-bind-class', 'data-bind-visible', 'data-bind-event', 'data-bind-foreach'])
+                ..allowElement('tr', attributes: ['data-bind-attr', 'data-bind-style', 'data-bind-class', 'data-bind-visible', 'data-bind-event', 'data-bind-foreach']);
         }
         // Check that the container is not null
         if (container != null) {
             // Bind each element to the embedded HTML
             container.querySelectorAll('[data-bind-foreach]').forEach((Element element) {
                 if (bindings.containsKey(element.dataset['bind-foreach'])) {
-                    var template = element.children.first.clone(true);
+                    // bindContainer does not bind attributes in the container
+                    var template = new Element.html('<div></div>')
+                        ..children.add(element.children.first.clone(true));
                     element.children.clear();
                     List list = bindings[element.dataset['bind-foreach']];
                     if (list is! ObservableList) {
@@ -134,13 +139,13 @@ class Template {
                     list.forEach((e) {
                         var new_element = template.clone(true);
                         new Template.bindContainer(new_element, e, router);
-                        element.children.add(new_element);
+                        element.children.add(new_element.children.first);
                     });
                     list.changes.listen((List<ChangeRecord> records) {
                         list.forEach((e) {
                             var new_element = template.clone(true);
                             new Template.bindContainer(new_element, e, router);
-                            element.children.add(new_element);
+                            element.children.add(new_element.children.first);
                         });
                     });
                 } else {
